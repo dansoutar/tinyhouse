@@ -7,7 +7,7 @@ import { ObjectId } from 'mongodb';
 
 const seed = async () => {
   try {
-    console.log('seed running..');
+    console.log('seed running...');
 
     const db = await connectDatabase();
     const listings: Listing[] = [
@@ -53,7 +53,7 @@ const seed = async () => {
       await db.listings.insertOne(listing);
     }
 
-    console.log('seed success');
+    console.log('seed success!');
   } catch (error) {
     console.error(error);
   }

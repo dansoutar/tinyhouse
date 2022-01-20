@@ -1,9 +1,10 @@
 import React from 'react';
-import { server } from '../../lib/api';
+import { useQuery, useMutation } from '../../lib/api';
 import {
   ListingsData,
   DeleteListingData,
   DeleteListingVariables,
+  Listing,
 } from './types';
 
 const LISTINGS = `
@@ -35,28 +36,50 @@ interface Props {
 }
 
 export const Listings = ({ title }: Props) => {
-  const fetchListings = async () => {
-    const { data } = await server.fetch<ListingsData>({ query: LISTINGS });
-    console.log(data);
+  const { data, refetch, loading, error } = useQuery<ListingsData>(LISTINGS);
+
+  const [
+    deleteListing,
+    { loading: deleteListingLoading, error: deleteListingError },
+  ] = useMutation(DELETE_LISTING);
+
+  const handleDeleteListing = async (id: string) => {
+    await deleteListing({ id });
+    refetch();
   };
 
-  const deleteListing = async () => {
-    const { data } = await server.fetch<
-      DeleteListingData,
-      DeleteListingVariables
-    >({
-      query: DELETE_LISTING,
-      variables: { id: '61cd2b0c9d0008137a39d785' },
-    });
+  const listings = data ? data.listings : null;
 
-    console.log(data);
-  };
+  const listingsList = listings
+    ? listings.map((listing) => (
+        <ul>
+          <li key={listing.id}>
+            {listing.title}
+            <button onClick={() => handleDeleteListing(listing.id)}>
+              Delete
+            </button>
+          </li>
+        </ul>
+      ))
+    : null;
+
+  if (loading) return <h2>Loading...</h2>;
+  if (error) return <h2>Something went wrong!</h2>;
+
+  const deleteListingLoadingMessage = deleteListingLoading ? (
+    <h4>Deletion in progress...</h4>
+  ) : null;
+
+  const deleteListingErrorMessage = deleteListingError ? (
+    <h4>Something went wrong with deletion :( </h4>
+  ) : null;
 
   return (
     <>
       <h2>{title}</h2>
-      <button onClick={fetchListings}>Query Listings!</button>
-      <button onClick={deleteListing}>Delete Listing!</button>
+      {listingsList}
+      {deleteListingLoadingMessage}
+      {deleteListingErrorMessage}
     </>
   );
 };
